@@ -30,10 +30,9 @@ if __name__ == "__main__":
     
     path = 'G:/My Drive/Data/main experiments/20240219 baby benchmark for pydia_sis/'
     # path = 'G:/My Drive/Data\data/240112 poc4 test/new pipeline and stats/'
-    pipeline = pileline( f'{path}', 'params.json', contains_reference = True, pulse_channel="H", meta='meta.csv')
+    pipeline = pileline( f'{path}', 'params.json', meta='meta.csv')
     # pipeline.make_metadata()
     pipeline.execute_pipeline() # in href mode
-    pipeline.generate_reports()
   
     
 

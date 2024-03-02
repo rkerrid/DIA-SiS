@@ -21,13 +21,11 @@ from dia_sis.pipeline.generate_protein_groups import HrefRollUp
 
 
 class Pipeline:
-    def __init__(self, path, parameter_file, contains_reference=True, pulse_channel="M", meta=None):
+    def __init__(self, path, parameter_file, meta=None):
         # Assign constructor variables
         self.path = path
         self.parameter_file = parameter_file
-        self.pulse_channel = pulse_channel
         self.meta = meta
-        self.contains_reference = contains_reference
         
         # Initialize class variables
         self.relable_with_meta = self._confirm_metadata()
@@ -36,8 +34,6 @@ class Pipeline:
         self.filter_cols = list(self.params['filter_cols'].keys())
        
         # Placeholder variables 
-        self.precursor_rollup = None
-        
         self.filtered_report = None
         self.contaminants = None
         self.filtered_out_df = None
@@ -88,9 +84,11 @@ class Pipeline:
         protein_groups_report_r.create_report(self.path, self.params)
         
     def execute_pipeline(self, generate_report=True):
-        self.preprocessor = Preprocessor(self.path, self.params, self.filter_cols, self.contains_reference, self.pulse_channel, self.meta_data)
+        self.preprocessor = Preprocessor(self.path, self.params, self.filter_cols, self.meta_data)
         self.filtered_report, self.filtered_out_df, self.contaminants = self.preprocessor.import_report()
-        self.formatted_precursors, self.protein_groups = self.precursor_rollup.generate_protein_groups()
+        
+        precursor_rollup = HrefRollUp(self.path, self.filtered_report)
+        self.formatted_precursors, self.protein_groups = precursor_rollup.generate_protein_groups()
         
         # return self.protein_groups
         if generate_report:

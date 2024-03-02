@@ -130,11 +130,11 @@ def create_report(df, path, params):
         # Process the data for each 'Run'
         for run in df['Run'].unique():
             run_df = df[df['Run'] == run]
-            counts = run_df.groupby('Run')[['H', 'L', 'M']].apply(lambda x: (x > 0).sum()).reset_index()
+            counts = run_df.groupby('Run')[['H', 'L']].apply(lambda x: (x > 0).sum()).reset_index()
             
             # Plotting
             plt.figure(figsize=(10, 7))
-            melted_counts = counts.melt(id_vars=['Run'], value_vars=['H', 'L', 'M'], var_name='Type', value_name='Counts')
+            melted_counts = counts.melt(id_vars=['Run'], value_vars=['H', 'L'], var_name='Type', value_name='Counts')
             sns.barplot(x='Run', y='Counts', hue='Type', data=melted_counts)
             plt.title(f'Non-Zero Counts for Run {run}')
             plt.xlabel('Sample')

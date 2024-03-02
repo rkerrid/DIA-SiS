@@ -66,11 +66,8 @@ def create_report(path, params, href=True):
         plt.close()
         
         path = f'{path}protein intensities/'
-        if href:
-            file_list = [f'{path}light_href.csv', f'{path}light_unnorm.csv', f'{path}nsp_href.csv', f'{path}nsp_unnorm.csv'] 
-        else:
-            file_list = [f'{path}light_dlfq.csv', f'{path}light_unnorm.csv', f'{path}nsp_dlfq.csv', f'{path}nsp_unnorm.csv']        
-
+        file_list = [f'{path}light_href.csv', f'{path}light_unnorm.csv'] 
+        
         for file in file_list:
             
             # Add correlation heatmap page

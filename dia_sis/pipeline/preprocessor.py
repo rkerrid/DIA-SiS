@@ -15,15 +15,13 @@ import os
 from icecream import ic
 
 class Preprocessor:
-    def __init__(self, path, params, filter_cols, contains_reference, pulse_channel, meta_data=None):
+    def __init__(self, path, params, filter_cols,meta_data=None):
         self.path = path
         self.meta_data = meta_data
         self.params = params
         self.chunk_size = 180000
         self.update = True
         self.filter_cols = filter_cols 
-        self.contains_reference = contains_reference
-        self.pulse_channel = pulse_channel
         
     def import_report(self):
         print('Beginning import report.tsv')
@@ -48,9 +46,10 @@ class Preprocessor:
                 # in the following loop we also annotate the silac chanels and append genes to Protein.Groups for downstream useage
                 pd.options.mode.chained_assignment = None  # Turn off SettingWithCopyWarning since adaptions are being made to original df during import
                 if self.meta_data is not None:
-                    ic(chunk)
+                    
                     chunk = self.subset_based_on_metadata(chunk)
                     chunk = self.relabel_run(chunk)
+                    
                 chunk['Genes'] = chunk['Genes'].fillna('')
                 chunk['Protein.Group'] = chunk['Protein.Group'].str.cat(chunk['Genes'], sep='-')
                 chunk['Label'] = ""
@@ -59,9 +58,8 @@ class Preprocessor:
                 chunk = self.remove_cols(chunk)
                 
                 # annotate df with SILAC chanel then apply strict filters to H by droping the precursor, or adding NaN for L and M channels if they dont pass loose filters
-                if self.contains_reference:
-                    chunk, chunk_filtered_out = self.filter_channel_strict(chunk, "H") 
-                    chunk = self.apply_nan_by_loose_filtering(chunk,"L")
+                chunk, chunk_filtered_out = self.filter_channel_strict(chunk, "H") 
+                    # chunk = self.apply_nan_by_loose_filtering(chunk,"L")
                 
                 contam_chunk = self.identify_contaminants(chunk)
                 

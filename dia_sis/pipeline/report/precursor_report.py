@@ -71,7 +71,7 @@ def create_report(df, path, params):
 
         # For each run, plot the histograms and save to PDF
         for run in runs:
-            plot_histograms_for_run(run, df_grouped, ['Precursor.Translated H', 'Precursor.Translated M', 'Precursor.Translated L'])
+            plot_histograms_for_run(run, df_grouped, ['Precursor.Translated H','Precursor.Translated L'])
             
             # )
             pdf.savefig()  # Saves the current figure into the PDF

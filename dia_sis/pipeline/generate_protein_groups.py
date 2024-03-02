@@ -39,11 +39,10 @@ class HrefRollUp:
         print('Formatting SILAC channels')
         # Pivot for each label
         pivot_L = df[df['Label'] == 'L'].pivot_table(index=['Run', 'Protein.Group', 'Precursor.Id'], aggfunc='first').add_suffix(' L')
-        pivot_M = df[df['Label'] == 'M'].pivot_table(index=['Run', 'Protein.Group', 'Precursor.Id'], aggfunc='first').add_suffix(' M')
         pivot_H = df[df['Label'] == 'H'].pivot_table(index=['Run', 'Protein.Group', 'Precursor.Id'], aggfunc='first').add_suffix(' H')
         
         # Merge the pivoted DataFrames
-        merged_df = pd.concat([pivot_L, pivot_M, pivot_H], axis=1)
+        merged_df = pd.concat([pivot_L, pivot_H], axis=1)
         # Reset index to make 'Run', 'Protein.Group', and 'Precursor.Id' as columns
         merged_df.reset_index(inplace=True)
     
@@ -51,7 +50,7 @@ class HrefRollUp:
         # Apply dropna on merged_df instead of df
         merged_df = merged_df.dropna(subset=['Precursor.Translated H'])
         # replace precursor quantity with summed silac channels as input for direct lefq and as 'total intensity' for href quantification
-        merged_df['Precursor.Quantity'] = merged_df['Precursor.Translated H'] + merged_df['Precursor.Translated M'] + merged_df['Precursor.Translated L'] 
+        merged_df['Precursor.Quantity'] = merged_df['Precursor.Translated H'] + merged_df['Precursor.Translated L'] 
  
         return merged_df
     
@@ -59,7 +58,6 @@ class HrefRollUp:
         print(f'Calculating SILAC ratios based on {quantification}')
         # Calculate ratios for all chanels (Precursor.Quantity is the total intensity of all 3 chanels, the default diann value has been overwritten at this point)
         df[f'{quantification} H/T'] = df[f'{quantification} H'] / df['Precursor.Quantity']
-        df[f'{quantification} M/T'] = df[f'{quantification} M'] / df['Precursor.Quantity']
         df[f'{quantification} L/T'] = df[f'{quantification} L'] / df['Precursor.Quantity']
         df['Lib.PG.Q.Value'] = 0
         return df
@@ -78,16 +76,14 @@ class HrefRollUp:
         
         result = df.groupby(['Protein.Group', 'Run']).agg({
             'Precursor.Translated H/T': valid_median,
-            'Precursor.Translated M/T': valid_median,
             'Precursor.Translated L/T': valid_median,
             'Precursor.Quantity': valid_sum        
         })
         result['H'] = result['Precursor.Translated H/T']*result['Precursor.Quantity']
-        result['M'] = result['Precursor.Translated M/T']*result['Precursor.Quantity']
         result['L'] = result['Precursor.Translated L/T']*result['Precursor.Quantity']
         result = result.reset_index()
         
-        cols = ['Run', 'Protein.Group', 'Precursor.Quantity', 'H', 'M', 'L'] 
+        cols = ['Run', 'Protein.Group', 'Precursor.Quantity', 'H', 'L'] 
         return result[cols]
     
     # Adjust unnormalized intensities
@@ -109,7 +105,6 @@ class HrefRollUp:
         
         # Normalize other chanels with this factor
         merged_df['H_norm'] = merged_df['H']*merged_df['factor']
-        merged_df['M_norm'] = merged_df['M']*merged_df['factor']
         merged_df['L_norm'] = merged_df['L']*merged_df['factor']
         
         return merged_df
@@ -117,22 +112,19 @@ class HrefRollUp:
     def output_protein_groups(self, df, path):
         manage_directories.create_directory(self.path, 'protein_groups')
         print(f'Outputing normalized protein intensities to {path}/protein_groups')
-        cols = ['Run', 'Protein.Group', 'H_norm', 'M_norm', 'L_norm']
+        cols = ['Run', 'Protein.Group', 'H_norm', 'L_norm']
         df = df[cols]
-        df = df.rename(columns={'H_norm': 'H', 'M_norm': 'M', 'L_norm': 'L'})
+        df = df.rename(columns={'H_norm': 'H', 'L_norm': 'L'})
 
         # Pivoting for 'H'
         h_pivot_df = df.pivot(index='Protein.Group', columns='Run', values='H')
         
-        # Pivoting for 'M'
-        m_pivot_df = df.pivot(index='Protein.Group', columns='Run', values='M')
         
         # Pivoting for 'L'
         l_pivot_df = df.pivot(index='Protein.Group', columns='Run', values='L')
         
         # then output each table to csv for h.href, l.href, m.href
         h_pivot_df.to_csv(f'{path}/protein_groups/href_href.csv', sep=',')
-        m_pivot_df.to_csv(f'{path}/protein_groups/nsp_href.csv', sep=',')
         l_pivot_df.to_csv(f'{path}/protein_groups/light_href.csv', sep=',')
 
-        return h_pivot_df, m_pivot_df, l_pivot_df
+        return h_pivot_df, l_pivot_df
