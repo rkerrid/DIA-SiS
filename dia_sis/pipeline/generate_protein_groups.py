@@ -27,7 +27,9 @@ class HrefRollUp:
         # formatting and ratios
         self.formatted_precursors = self.format_silac_channels(self.filtered_report)
         self.formatted_precursors = self.calculate_precursor_ratios(self.formatted_precursors, quantification)
-        self.protein_groups = self.compute_protein_level(self.formatted_precursors)
+        # self.protein_groups = self.compute_protein_level(self.formatted_precursors)
+        self.protein_groups = self.compute_protein_level_test(self.formatted_precursors)
+
         # Adjusting intensities and outputing data
         self.protein_groups = self.calculate_href_intensities(self.protein_groups)
         self.output_protein_groups(self.protein_groups, self.path)
@@ -85,6 +87,36 @@ class HrefRollUp:
         
         cols = ['Run', 'Protein.Group', 'Precursor.Quantity', 'H', 'L'] 
         return result[cols]
+    
+    def compute_protein_level_test(self, df): # this function looks for at least 3 valid values for each ratio and sums Precursor.Quantity (which is the sum of precursor translated values) for total intensity
+        print('Rolling up to protein level')
+        runs = df['Run'].unique()
+        runs_list = []
+        for run in runs:
+            # Function to filter values and compute median
+            run = df[df['Run']==run]
+            def valid_median(series):
+                valid_series = series.replace([0, np.inf, -np.inf], np.nan).dropna()
+                valid_series = np.log2(valid_series)
+                return 2 **valid_series.median() if len(valid_series) >= 2 else np.nan
+            
+            def valid_sum(series):
+                valid_series = series.replace([0, np.inf, -np.inf], np.nan).dropna()
+                return valid_series.sum() 
+            
+            result = df[run].groupby(['Protein.Group']).agg({
+                'Precursor.Translated H/T': valid_median,
+                'Precursor.Translated L/T': valid_median,
+                'Precursor.Quantity': valid_sum        
+            })
+            result['H'] = result['Precursor.Translated H/T']*result['Precursor.Quantity']
+            result['L'] = result['Precursor.Translated L/T']*result['Precursor.Quantity']
+            result = result.reset_index()
+            runs_list.append(result)
+        result = pd.concat(runs_list, ignore_index=True)
+        cols = ['Run', 'Protein.Group', 'Precursor.Quantity', 'H', 'L'] 
+        return result[cols]
+    
     
     # Adjust unnormalized intensities
     def calculate_href_intensities(self, df):
