@@ -1,0 +1,26 @@
+{
+    "apply_strict_filters": {
+        "Precursor.Charge": {"op": ">", "value": 1},
+        "Mass.Evidence": {"op": ">", "value": 0.5},
+        "Global.PG.Q.Value": {"op": "<", "value": 0.01},
+        "Channel.Q.Value": {"op": "<", "value": 0.03},
+        "Translated.Q.Value": {"op": "<", "value": 0.03},
+        "Translated.Quality": {"op": ">=", "value": 0.05}
+    },
+    "apply_loose_filters": {
+        "Global.PG.Q.Value": {"op": "<", "value": 0.01},
+        "Precursor.Charge": {"op": ">", "value": 1},
+        "Channel.Q.Value": {"op": "<", "value": 0.03},
+        "Global.Q.Value": {"op": "<", "value": 0.01}
+    },
+    "filter_cols": {
+        "Precursor.Charge": {},
+        "Mass.Evidence": {},
+        "Global.PG.Q.Value": {},
+        "Channel.Q.Value": {},
+        "Translated.Q.Value": {},
+        "Translated.Quality": {},
+        "Global.Q.Value": {},
+        "Lib.PG.Q.Value": {}
+    }
+}

@@ -1,0 +1,11 @@
+{
+    "apply_filters": {
+        "Precursor.Charge": {"op": ">", "value": 1},
+        "Mass.Evidence": {"op": ">", "value": 0.5},
+        "Global.PG.Q.Value": {"op": "<", "value": 0.01},
+        "Channel.Q.Value": {"op": "<", "value": 0.03},
+        "Translated.Q.Value": {"op": "<", "value": 0.03},
+        "Translated.Quality": {"op": ">=", "value": 0.05}
+    }
+}
+

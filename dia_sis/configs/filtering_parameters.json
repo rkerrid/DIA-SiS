@@ -1,0 +1,8 @@
+{
+    "apply_filters": {
+        "Global.PG.Q.Value": {"op": "<", "value": 0.01},
+        "Precursor.Charge": {"op": ">", "value": 1},
+        "Channel.Q.Value": {"op": "<", "value": 0.03},
+        "Global.Q.Value": {"op": "<", "value": 0.01}
+    }
+}
