@@ -15,7 +15,7 @@ import os
 from icecream import ic
 
 class Preprocessor:
-    def __init__(self, path, params, filter_cols,meta_data=None):
+    def __init__(self, path, params, filter_cols, meta_data=None):
         self.path = path
         self.meta_data = meta_data
         self.params = params
@@ -71,8 +71,8 @@ class Preprocessor:
                 
                 # if self.update:
                 #     print(f'Chunk {count} processed')
-                if count == 1:
-                    break
+                # if count == 1:
+                #     break
             
         # append chunks to respective dfs and return  
         df = pd.concat(chunks, ignore_index=True)
