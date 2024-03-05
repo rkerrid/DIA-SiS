@@ -58,8 +58,8 @@ class Preprocessor:
                 chunk = self.remove_cols(chunk)
                 
                 # annotate df with SILAC chanel then apply strict filters to H by droping the precursor, or adding NaN for L and M channels if they dont pass loose filters
-                chunk, chunk_filtered_out = self.filter_channel_strict(chunk, "H") 
-                    # chunk = self.apply_nan_by_loose_filtering(chunk,"L")
+                chunk, chunk_filtered_out = self.filter_channel(chunk, "H")
+                chunk = self.apply_nan_by_loose_filtering(chunk,"L")
                 
                 contam_chunk = self.identify_contaminants(chunk)
                 
@@ -112,7 +112,7 @@ class Preprocessor:
         chunk = chunk[cols]
         return chunk
 
-    def filter_channel_strict(self, chunk, label):
+    def filter_channel(self, chunk, label):
         ops = {
             "==": operator.eq, "<": operator.lt, "<=": operator.le,
             ">": operator.gt, ">=": operator.ge
@@ -123,7 +123,7 @@ class Preprocessor:
             # Start with a mask that selects all chanel rows
             h_rows_mask = chunk['Label'] == label
     
-            for column, condition in self.params['apply_strict_filters'].items():
+            for column, condition in self.params['apply_loose_filters'].items():
                 op = ops[condition['op']]
                 # Update the mask to keep chanel rows that meet the condition
                 h_rows_mask &= op(chunk[column], condition['value'])

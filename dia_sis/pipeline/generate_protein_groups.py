@@ -50,7 +50,7 @@ class HrefRollUp:
     
         # remove all rows that contain a NaN under the Label H column (i.e., no H precursor is present for that row)
         # Apply dropna on merged_df instead of df
-        merged_df = merged_df.dropna(subset=['Precursor.Translated H'])
+        # merged_df = merged_df.dropna(subset=['Precursor.Translated H'])
         # replace precursor quantity with summed silac channels as input for direct lefq and as 'total intensity' for href quantification
         merged_df['Precursor.Quantity'] = merged_df['Precursor.Translated H'] + merged_df['Precursor.Translated L'] 
  
@@ -69,7 +69,7 @@ class HrefRollUp:
         def valid_median(series):
             valid_series = series.replace([0, np.inf, -np.inf], np.nan).dropna()
             valid_series = np.log2(valid_series)
-            return 2 **valid_series.median() if len(valid_series) >= 2 else np.nan
+            return 2 **valid_series.median() if len(valid_series) >= 1 else np.nan
         
         def valid_sum(series):
             valid_series = series.replace([0, np.inf, -np.inf], np.nan).dropna()
@@ -102,7 +102,7 @@ class HrefRollUp:
                 valid_precursor = precursor_series.replace([0, np.inf, -np.inf], np.nan).dropna()
     
                 # Ensure at least 3 valid values in each series before combining
-                if len(valid_ms1) >= 2 and len(valid_precursor) >= 2:
+                if len(valid_ms1) >= 1 and len(valid_precursor) >= 1:
                     combined_series = np.concatenate([valid_ms1, valid_precursor])
                     combined_series = np.log2(combined_series)  # Log-transform the combined series
                     return 2 ** np.median(combined_series)  # Return the median of the log-transformed values
@@ -129,9 +129,6 @@ class HrefRollUp:
     
         # Returning the dataframe with specified columns
         return result[cols]
-
-
-
 
 
     # Adjust unnormalized intensities
@@ -176,3 +173,13 @@ class HrefRollUp:
         l_pivot_df.to_csv(f'{path}/protein_groups/light_href.csv', sep=',')
 
         return h_pivot_df, l_pivot_df
+
+
+
+
+
+
+
+
+
+
