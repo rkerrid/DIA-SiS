@@ -71,8 +71,8 @@ class Preprocessor:
                 
                 # if self.update:
                 #     print(f'Chunk {count} processed')
-                # if count == 1:
-                #     break
+                if count == 1:
+                    break
             
         # append chunks to respective dfs and return  
         df = pd.concat(chunks, ignore_index=True)

@@ -29,8 +29,8 @@ def create_report(path, params):
     # Read in each dataframe  
     # Load the data from all three CSV files
     file_paths = {
-        'reference': f'{path}/protein_groups/href_href.csv',
-        'light_proteome': f'{path}/protein_groups/light_href.csv',
+        'reference': f'{path}/protein_groups/href.csv',
+        'light_proteome': f'{path}/protein_groups/light.csv',
     }
     
     # Initialize a dictionary to hold the dataframes
