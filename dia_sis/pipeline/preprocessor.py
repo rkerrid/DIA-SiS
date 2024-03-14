@@ -47,7 +47,7 @@ class Preprocessor:
                 pd.options.mode.chained_assignment = None  # Turn off SettingWithCopyWarning since adaptions are being made to original df during import
                 if self.meta_data is not None:
                     
-                    chunk = self.subset_based_on_metadata(chunk)
+                    chunk = self.subset_based_on_metadata(chunk) # double check
                     chunk = self.relabel_run(chunk)
                     
                 chunk['Genes'] = chunk['Genes'].fillna('')
@@ -59,7 +59,8 @@ class Preprocessor:
                 
                 # annotate df with SILAC chanel then apply strict filters to H by droping the precursor, or adding NaN for L and M channels if they dont pass loose filters
                 chunk, chunk_filtered_out = self.filter_channel(chunk, "H")
-                chunk = self.apply_nan_by_loose_filtering(chunk,"L")
+                # chunk = self.apply_nan_by_loose_filtering(chunk,"L")
+                chunk, filtered_out_light = self.filter_channel(chunk, "L")
                 
                 contam_chunk = self.identify_contaminants(chunk)
                 
@@ -70,9 +71,9 @@ class Preprocessor:
                 contaminants.append(contam_chunk)
                 
                 # if self.update:
-                #     print(f'Chunk {count} processed')
-                if count == 1:
-                    break
+                # #     print(f'Chunk {count} processed')
+                # if count == 1:
+                #     break
             
         # append chunks to respective dfs and return  
         df = pd.concat(chunks, ignore_index=True)
