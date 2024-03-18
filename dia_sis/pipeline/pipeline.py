@@ -17,7 +17,7 @@ from .utils import manage_directories
 from .report import filtering_report, precursor_report, protein_group_report, protein_intensities_report, protein_groups_report_r
 
 from dia_sis.pipeline.preprocessor import Preprocessor 
-from dia_sis.pipeline.generate_protein_groups import HrefRollUp
+from dia_sis.pipeline.generate_protein_groups import DiaSis
 
 
 class Pipeline:
@@ -87,7 +87,7 @@ class Pipeline:
         self.preprocessor = Preprocessor(self.path, self.params, self.filter_cols, self.meta_data)
         self.filtered_report, self.filtered_out_df, self.contaminants = self.preprocessor.import_report()
         
-        precursor_rollup = HrefRollUp(self.path, self.filtered_report)
+        precursor_rollup = DiaSis(self.path, self.filtered_report)
         self.formatted_precursors, self.protein_groups = precursor_rollup.generate_protein_groups()
         
         # return self.protein_groups

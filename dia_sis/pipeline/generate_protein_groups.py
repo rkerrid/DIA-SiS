@@ -12,7 +12,7 @@ from .utils import manage_directories
 from tqdm import tqdm
 
 
-class HrefRollUp:
+class DiaSis:
     def __init__(self, path, filtered_report):
         self.path = path
         self.filtered_report = filtered_report
