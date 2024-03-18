@@ -70,8 +70,6 @@ class Preprocessor:
                 filtered_out.append(chunk_filtered_out)
                 contaminants.append(contam_chunk)
                 
-                # if self.update:
-                # #     print(f'Chunk {count} processed')
                 # if count == 1:
                 #     break
             

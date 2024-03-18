@@ -11,18 +11,18 @@ from icecream import ic
 import pandas as pd 
 import numpy as np
 
-df = pd.read_csv('G:/My Drive/data/main experiments/20240219 baby benchmark for pydia_sis/preprocessing/formatted_precursors.tsv', sep = '\t')
-protein = 'ECOLI_P0A790;P0A790'
-precursor = 'A0A075B6R3;HUMAN_A0A075B6R3;HUMAN_J3QS41;HUMAN_P42694;J3QS41;P42694-'
-sub_df = df[df['Protein.Group'].str.contains(precursor)]
+# df = pd.read_csv('G:/My Drive/data/main experiments/20240219 baby benchmark for pydia_sis/preprocessing/formatted_precursors.tsv', sep = '\t')
+# protein = 'ECOLI_P0A790;P0A790'
+# precursor = 'A0A075B6R3;HUMAN_A0A075B6R3;HUMAN_J3QS41;HUMAN_P42694;J3QS41;P42694-'
+# sub_df = df[df['Protein.Group'].str.contains(precursor)]
 
 
-href = pd.read_csv('G:/My Drive/Data/main experiments/20240219 baby benchmark for pydia_sis/protein_groups/href.csv', sep=',')
+# href = pd.read_csv('G:/My Drive/Data/main experiments/20240219 baby benchmark for pydia_sis/protein_groups/href.csv', sep=',')
 
-light = pd.read_csv('G:/My Drive/Data/main experiments/20240219 baby benchmark for pydia_sis/protein_groups/light.csv', sep=',')
-sub_light = light[light['Protein.Group'].str.contains('A0A075B6R3;HUMAN_A0A075B6R3;HUMAN_J3QS41;HUMAN_P42694;J3QS41;P42694-')]
+# light = pd.read_csv('G:/My Drive/Data/main experiments/20240219 baby benchmark for pydia_sis/protein_groups/light.csv', sep=',')
+# sub_light = light[light['Protein.Group'].str.contains('A0A075B6R3;HUMAN_A0A075B6R3;HUMAN_J3QS41;HUMAN_P42694;J3QS41;P42694-')]
 
-sub_href = href[href['Protein.Group'].str.contains('A0A075B6R3;HUMAN_A0A075B6R3;HUMAN_J3QS41;HUMAN_P42694;J3QS41;P42694-')]
+# sub_href = href[href['Protein.Group'].str.contains('A0A075B6R3;HUMAN_A0A075B6R3;HUMAN_J3QS41;HUMAN_P42694;J3QS41;P42694-')]
 
 # def calculate_precursor_href_intensities( df):
     
@@ -47,3 +47,32 @@ sub_href = href[href['Protein.Group'].str.contains('A0A075B6R3;HUMAN_A0A075B6R3;
 #     return grouped[['Protein.Group', 'href']]
 
 # result = calculate_precursor_href_intensities(df)
+
+path = "G:/My Drive/Data/main experiments/20240219 baby benchmark for pydia_sis/testing dfs/"
+precursors = pd.read_csv(f'{path}/formatted.csv', sep=',')
+pg = pd.read_csv(f'{path}/pg.csv', sep=',')
+href = pd.read_csv(f'{path}/href.csv', sep=',')
+
+# def calculate_precursor_href_intensities(df):
+#     print('Calculate href df')
+#     df = df.copy(deep = True)
+#     def combined_median(ms1_series, precursor_series):
+#         # valid_ms1 = ms1_series.replace([0, np.inf, -np.inf], np.nan).dropna()
+#         # valid_precursor = precursor_series.replace([0, np.inf, -np.inf], np.nan).dropna()
+#         ic(ms1_series)
+#         ic(precursor_series)
+        
+#         combined_series = np.concatenate([ms1_series, precursor_series])
+#         combined_series = np.log10(combined_series)  # Log-transform the combined series
+#         return np.median(combined_series)  # Return the median of the log-transformed values
+   
+#     # Group by protein group and apply the custom aggregation
+#     grouped = df.groupby(['Protein.Group']).apply(lambda x: pd.Series({
+#         'href': combined_median(x['Ms1.Translated H'], x['Precursor.Translated H']) 
+#     })).reset_index()
+   
+#     return grouped[['Protein.Group', 'href']]
+
+# href_test = calculate_precursor_href_intensities(precursors)
+
+
