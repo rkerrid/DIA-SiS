@@ -60,7 +60,7 @@ class Preprocessor:
                 # annotate df with SILAC chanel then apply strict filters to H by droping the precursor, or adding NaN for L and M channels if they dont pass loose filters
                 chunk, chunk_filtered_out = self.filter_channel(chunk, "H")
                 # chunk = self.apply_nan_by_loose_filtering(chunk,"L")
-                chunk, filtered_out_light = self.filter_channel(chunk, "L")
+                # chunk, filtered_out_light = self.filter_channel(chunk, "L")
                 
                 contam_chunk = self.identify_contaminants(chunk)
                 
