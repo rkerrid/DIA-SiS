@@ -31,7 +31,7 @@ class DiaSis:
         self.formatted_precursors = self.calculate_precursor_ratios(self.formatted_precursors)
         
         # Calculate global href df
-        self.href_df = self.calculate_precursor_href_intensities(self.formatted_precursors)
+        self.href_df = self.calculate_precursor_href_intensities_sum(self.formatted_precursors)
         
         # Compute protein level ratios
         self.protein_groups = self.compute_protein_level(self.formatted_precursors)
@@ -92,6 +92,38 @@ class DiaSis:
        
         return grouped[['Protein.Group', 'href']]
     
+    def calculate_precursor_href_intensities_sum(self, df): # work on this function
+        print('Calculate href df')
+        df = df.copy(deep = True)
+        df = df.dropna(subset=['Precursor.Translated H','Ms1.Translated H'])
+        
+        runs = df['Run'].unique()
+        runs_list = []
+        for run in tqdm(runs, desc='Computing heavy intensities for each run'):
+            run_df = df[df['Run'] == run]
+    
+            def combined_sum(ms1_series, precursor_series):
+                # combined_series = np.concatenate([ms1_series, precursor_series])
+                total_intensity = ms1_series + precursor_series
+                total_intensity = np.sum(total_intensity)
+                return np.log10(total_intensity)  # Return the median of the log-transformed values
+           
+            # Group by protein group and apply the custom aggregation
+            grouped = run_df.groupby(['Protein.Group']).apply(lambda x: pd.Series({
+                'href': combined_sum(x['Ms1.Translated H'], x['Precursor.Translated H']) 
+            })).reset_index()
+           
+            grouped['Run'] = run
+            runs_list.append(grouped)
+        
+        # combine runs into dataframe
+        combined_df = pd.concat(runs_list, axis=0, ignore_index=True)
+
+        # Get median protein intensity
+        # Group by 'Protein.Group' and calculate the median of 'href'
+        result = combined_df.groupby('Protein.Group')['href'].median().reset_index()     
+        # ic(result)
+        return result
    
     def compute_protein_level(self, df):
         print('Rolling up to protein level')
