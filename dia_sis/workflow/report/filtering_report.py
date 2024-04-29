@@ -11,7 +11,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 import warnings
-from dia_sis.pipeline.utils import manage_directories
+from dia_sis.workflow.utils import manage_directories
 
 
 def create_report(df, contams, filtered_out, path, params):
@@ -21,10 +21,10 @@ def create_report(df, contams, filtered_out, path, params):
     counts_filtered_out = filtered_out['Run'].value_counts()
 
     # Construct the description string
-    strict_params_str = "\n".join([f"{key} {item['op']} {item['value']}" for key, item in params['apply_strict_filters'].items()])
-    loose_params_str = "\n".join([f"{key} {item['op']} {item['value']}" for key, item in params['apply_loose_filters'].items()])
+    # strict_params_str = "\n".join([f"{key} {item['op']} {item['value']}" for key, item in params['apply_strict_filters'].items()])
+    params_str = "\n".join([f"{key} {item['op']} {item['value']}" for key, item in params['apply_loose_filters'].items()])
 
-    description = f"Strict parameters used:\n{strict_params_str} \n\n Loose parameters used:\n{loose_params_str}"
+    description = f"Parameters used:\n{params_str}"
     
     #Group by run for analysis of each
     df_grouped = df.groupby('Run')

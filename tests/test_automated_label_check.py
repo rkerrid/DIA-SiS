@@ -4,10 +4,10 @@ Created on Fri Oct 20 16:51:01 2023
 
 @author: rkerrid
 """
-from silac_dia_tools.label_check import file_io as io
-from silac_dia_tools.label_check import get_peptide_details 
-from silac_dia_tools.label_check import plot_spectra
-from silac_dia_tools.label_check import process_peptide_details
+from dia_sis.label_check import file_io as io
+from dia_sis.label_check import get_peptide_details 
+from dia_sis.label_check import plot_spectra
+from dia_sis.label_check import process_peptide_details
 
 # work
 path = 'C:/data/silac_dia_tools_files/data/spikein data/'

@@ -12,13 +12,13 @@ from matplotlib.backends.backend_pdf import PdfPages
 
 import json
 
-from dia_sis.pipeline.utils import manage_directories
+from dia_sis.workflow.utils import manage_directories
 
 
 
 def create_report(df, path, params):
     # Construct the description string
-    params_str = "\n".join([f"{key} {item['op']} {item['value']}" for key, item in params['apply_strict_filters'].items()])
+    params_str = "\n".join([f"{key} {item['op']} {item['value']}" for key, item in params['apply_loose_filters'].items()])
     description = f"Parameters used:\n{params_str}"
     
     counts_df = df['Run'].value_counts()

@@ -1,13 +1,6 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Jan 25 10:49:28 2024
-
-@author: robbi
-"""
 import pandas as pd
 import numpy as np
 import time
-from icecream import ic
 from .utils import manage_directories
 from tqdm import tqdm
 
@@ -75,7 +68,7 @@ class DiaSis:
       
         return df
 
-    def calculate_precursor_href_intensities(self, df):
+    def calculate_precursor_href_intensities(self, df): # Older method where median H channel precursors were used to generate H reference
         print('Calculate href df')
         df = df.copy(deep = True)
         df = df.dropna(subset=['Precursor.Translated H','Ms1.Translated H'])
@@ -92,7 +85,7 @@ class DiaSis:
        
         return grouped[['Protein.Group', 'href']]
     
-    def calculate_precursor_href_intensities_sum(self, df): # work on this function
+    def calculate_precursor_href_intensities_sum(self, df): 
         print('Calculate href df')
         df = df.copy(deep = True)
         df = df.dropna(subset=['Precursor.Translated H','Ms1.Translated H'])
@@ -103,7 +96,6 @@ class DiaSis:
             run_df = df[df['Run'] == run]
     
             def combined_sum(ms1_series, precursor_series):
-                # combined_series = np.concatenate([ms1_series, precursor_series])
                 total_intensity = ms1_series + precursor_series
                 total_intensity = np.sum(total_intensity)
                 return np.log10(total_intensity)  # Return the median of the log-transformed values
@@ -119,10 +111,8 @@ class DiaSis:
         # combine runs into dataframe
         combined_df = pd.concat(runs_list, axis=0, ignore_index=True)
 
-        # Get median protein intensity
         # Group by 'Protein.Group' and calculate the median of 'href'
         result = combined_df.groupby('Protein.Group')['href'].median().reset_index()     
-        # ic(result)
         return result
    
     def compute_protein_level(self, df):
@@ -156,7 +146,7 @@ class DiaSis:
     
     def href_normalization(self, protein_groups, href):
         print('Calculating adjusted intensities using reference')
-        # Merge the href_df onto protein groups containing optimized ratios
+        # Merge the href_df onto protein groups containing protein level ratios
         merged_df = protein_groups.merge(href, on='Protein.Group', how='inner')
         
         # Obtain normalized light intensities by adding the L/H ratio to the heavy refference in log space

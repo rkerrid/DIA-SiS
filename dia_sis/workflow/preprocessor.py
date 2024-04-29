@@ -1,18 +1,11 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Sun Jan 14 18:27:52 2024
-
-@author: robbi
-"""
-
 import pandas as pd
-import numpy as np
+# Turn off the SettingWithCopyWarning
+pd.options.mode.chained_assignment = None
 import operator
 import time 
-
 from tqdm import tqdm
 import os
-from icecream import ic
+
 
 class Preprocessor:
     def __init__(self, path, params, filter_cols, meta_data=None):
@@ -44,33 +37,30 @@ class Preprocessor:
                       total=total_chunks, desc='Estimated loading of report.tsv based on file size'):
                 # reduce data size by subsetting report.tsv based on metadata, and removing columns not needed for further analysis
                 # in the following loop we also annotate the silac chanels and append genes to Protein.Groups for downstream useage
-                pd.options.mode.chained_assignment = None  # Turn off SettingWithCopyWarning since adaptions are being made to original df during import
                 if self.meta_data is not None:
-                    
-                    chunk = self.subset_based_on_metadata(chunk) # double check
-                    chunk = self.relabel_run(chunk)
+                    chunk = self._subset_based_on_metadata(chunk) # double check
+                    chunk = self._relabel_run(chunk)
                     
                 chunk['Genes'] = chunk['Genes'].fillna('')
                 chunk['Protein.Group'] = chunk['Protein.Group'].str.cat(chunk['Genes'], sep='-')
                 chunk['Label'] = ""
-                chunk = self.add_label_col(chunk)
-                # chunk = self.drop_non_valid_h_rows(chunk) probably dont need this func because filtering will remove these rows
-                chunk = self.remove_cols(chunk)
+                chunk = self._add_label_col(chunk)
+                chunk = self._remove_cols(chunk)
                 
-                # annotate df with SILAC chanel then apply strict filters to H by droping the precursor, or adding NaN for L and M channels if they dont pass loose filters
-                chunk, chunk_filtered_out = self.filter_channel(chunk, "H")
-                # chunk = self.apply_nan_by_loose_filtering(chunk,"L")
-                chunk, filtered_out_light = self.filter_channel(chunk, "L")
+                # annotate df with SILAC chanel then apply filtering to H channel. Uncomment fitlerng to light channel if you do not want to use 'requantify'
+                chunk, chunk_filtered_out = self._filter_channel(chunk, "H")
+                # chunk, filtered_out_light = self.filter_channel(chunk, "L")
                 
-                contam_chunk = self.identify_contaminants(chunk)
+                # ID contaminants for report
+                contam_chunk = self._identify_contaminants(chunk)
                 
-                #remove filter cols before concatinating all dfs and returning
+                #remove filter cols before concatinating all dfs and returning filtered df for reports and protein roll up
                 chunk.drop(self.filter_cols, axis=1, inplace=True)
                 chunks.append(chunk)
                 filtered_out.append(chunk_filtered_out)
                 contaminants.append(contam_chunk)
                 
-                # if count == 1:
+                # if count == 1: # unncomment to read in less data for troubleshooting
                 #     break
             
         # append chunks to respective dfs and return  
@@ -83,21 +73,21 @@ class Preprocessor:
         return df, filtered_out_df, contaminants_df
 
 
-    def subset_based_on_metadata(self, chunk):
+    def _subset_based_on_metadata(self, chunk):
         filtered_chunk = chunk[chunk['Run'].isin(self.meta_data['Run'])]
         return filtered_chunk
     
-    def relabel_run(self, chunk):
+    def _relabel_run(self, chunk):
         run_to_sample = dict(zip(self.meta_data['Run'], self.meta_data['Sample']))
 
-        # Apply the mapping to df2['Run'] and raise an error if a 'Run' value doesn't exist in df1
+        # Apply the mapping to the current chunk and raise an error if a 'Run' value from the metadata doesn't exist in this chunk
         chunk['Run'] = chunk['Run'].map(run_to_sample)
         if chunk['Run'].isna().any():
             raise ValueError("Some Run values in the report.tsv are not found in the metadata, please ensure metadata is correct.")
             
         return chunk
 
-    def add_label_col(self, chunk):
+    def _add_label_col(self, chunk):
         # Extract the label and add it as a new column
         chunk['Label'] = chunk['Precursor.Id'].str.extract(r'\(SILAC-(K|R)-([HML])\)')[1]
     
@@ -106,30 +96,30 @@ class Preprocessor:
     
         return chunk
 
-    def remove_cols(self, chunk):
+    def _remove_cols(self, chunk):
         cols = ['Run', 'Protein.Group', 'Precursor.Id', 'Label',  'Precursor.Quantity','Ms1.Translated','Precursor.Translated'] + self.filter_cols 
         chunk = chunk[cols]
         return chunk
 
-    def filter_channel(self, chunk, label):
+    def _filter_channel(self, chunk, label):
         ops = {
             "==": operator.eq, "<": operator.lt, "<=": operator.le,
             ">": operator.gt, ">=": operator.ge
         }
     
-        # Check if 'H' labeled rows are present
+        # Check if label is present in the chunk
         if label in chunk['Label'].values:
             # Start with a mask that selects all chanel rows
-            h_rows_mask = chunk['Label'] == label
+            channel_rows_mask = chunk['Label'] == label
     
-            for column, condition in self.params['apply_loose_filters'].items():
+            for column, condition in self.params['apply_loose_filters'].items(): # can set this to 'strict filtering', see params.json in configs folder
                 op = ops[condition['op']]
                 # Update the mask to keep chanel rows that meet the condition
-                h_rows_mask &= op(chunk[column], condition['value'])
+                channel_rows_mask &= op(chunk[column], condition['value'])
     
             # Filter out chanel rows that do not meet all conditions
-            filtered_chunk = chunk[h_rows_mask | (chunk['Label'] != label)]
-            chunk_filtered_out = chunk[~h_rows_mask & (chunk['Label'] == label)]
+            filtered_chunk = chunk[channel_rows_mask | (chunk['Label'] != label)]
+            chunk_filtered_out = chunk[~channel_rows_mask & (chunk['Label'] == label)]
         else:
             # If the label is not present, return the whole chunk and an empty 'filtered' chunk
             filtered_chunk = chunk
@@ -137,30 +127,8 @@ class Preprocessor:
     
         return filtered_chunk, chunk_filtered_out
 
-    def apply_nan_by_loose_filtering(self, chunk, label):
-        # Create boolean mask for length of chunk
-        filtering_condition = pd.Series([True] * len(chunk), index=chunk.index)
-        ops = {
-            "==": operator.eq, "<": operator.lt, "<=": operator.le,
-            ">": operator.gt, ">=": operator.ge
-        }
-        filtered_chunk = chunk.copy()
-    
-        if label in chunk['Label'].values:
-            for column, condition in self.params['apply_loose_filters'].items():
-                op = ops[condition['op']]
-                # Update the condition for each column if any of the filtering criterea don't pass
-                filtering_condition &= op(chunk[column], condition['value'])
-    
-            nan_cols = ['Precursor.Translated', 'Precursor.Quantity', 'Ms1.Translated']
-            for col in nan_cols:
-                if col in chunk.columns:
-                    # Set NaN where the condition is False
-                    filtered_chunk.loc[~filtering_condition, col] = np.nan
-    
-        return filtered_chunk
 
-    def identify_contaminants(self, chunk):
+    def _identify_contaminants(self, chunk):
          chunk_copy = chunk.copy(deep=True)
          contams_mask = chunk_copy['Protein.Group'].str.contains('Cont_', case=False, na=False)
          self._validate_boolean_mask(contams_mask)

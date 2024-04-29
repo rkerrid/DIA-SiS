@@ -8,16 +8,16 @@ Created on Sun Jan 14 17:53:34 2024
 import os
 import pandas as pd
 import tkinter as tk
-from tkinter import messagebox, filedialog
+from tkinter import filedialog
 from pandastable import Table
 import json
 import dask.dataframe as dd
 
 from .utils import manage_directories
-from .report import filtering_report, precursor_report, protein_group_report, protein_intensities_report, protein_groups_report_r
+from .report import filtering_report, precursor_report, protein_groups_report
 
-from dia_sis.pipeline.preprocessor import Preprocessor 
-from dia_sis.pipeline.generate_protein_groups import DiaSis
+from dia_sis.workflow.preprocessor import Preprocessor 
+from dia_sis.workflow.generate_protein_groups import DiaSis
 
 
 class Pipeline:
@@ -41,11 +41,6 @@ class Pipeline:
         self.formatted_precursors = None
         self.protein_groups = None
         
-    def _load_params(self):
-        json_path = os.path.join(os.path.dirname(__file__), '..', 'configs', self.parameter_file)
-        with open(json_path, 'r') as file:
-            return json.load(file)
-
     def _confirm_metadata(self):
         if self.meta is None:
             print("No metadata added, filtering will continue without relabeling")
@@ -63,9 +58,14 @@ class Pipeline:
             return True
         print(f"CSV file '{self.meta}' not found in the directory.")
         return False
-
+    
     def _load_meta_data(self):
-        return pd.read_csv(os.path.join(self.path, self.meta), sep=',')       
+        return pd.read_csv(os.path.join(self.path, self.meta), sep=',') 
+    
+    def _load_params(self):
+        json_path = os.path.join(os.path.dirname(__file__), '..', 'configs', self.parameter_file)
+        with open(json_path, 'r') as file:
+            return json.load(file)     
     
     def _save_preprocessing(self):
         manage_directories.create_directory(self.path, 'preprocessing')
@@ -78,10 +78,8 @@ class Pipeline:
     def _generate_reports(self):
         # Generate reports for filtering, precursors, and protein groups
         filtering_report.create_report(self.filtered_report, self.contaminants, self.filtered_out_df, self.path, self.params)
-        precursor_report.create_report(self.formatted_precursors, self.path, self.params)
-        # protein_group_report.create_report(self.protein_groups, self.path, self.params)
-        
-        protein_groups_report_r.create_report(self.path, self.params)
+        precursor_report.create_report(self.formatted_precursors, self.path, self.params)        
+        protein_groups_report.create_report(self.path, self.params)
         
     def execute_pipeline(self, generate_report=True):
         self.preprocessor = Preprocessor(self.path, self.params, self.filter_cols, self.meta_data)
@@ -103,6 +101,7 @@ class Pipeline:
         app.pack(fill="both", expand=True)  # Ensure the app fills the root window
         root.mainloop()
             
+        
 class TestApp(tk.Frame):
     def __init__(self, path, parent=None):
         super().__init__(parent)
