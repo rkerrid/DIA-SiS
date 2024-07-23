@@ -60,7 +60,7 @@ class Preprocessor:
                 filtered_out.append(chunk_filtered_out)
                 contaminants.append(contam_chunk)
                 
-                # if count == 1: # unncomment to read in less data for troubleshooting
+                # if count == 1: # unncomment for troubleshooting
                 #     break
             
         # append chunks to respective dfs and return  
