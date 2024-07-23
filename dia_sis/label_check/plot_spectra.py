@@ -17,7 +17,7 @@ def import_ms_data_for_plotting(path, peptides):
         mz = df.mz
         intensity = df.intensity
         #plot each peptide
-        scan_plot(mz, intensity, peptide_details)
+        scan_plot(mz, intensity, peptide_details, path)
 
 def plot_points_and_lines(mz_values, intensity_values, expected_light_peak, expected_heavy_peak):
     for x, y in zip(mz_values, intensity_values):
@@ -56,7 +56,7 @@ def annotate_peaks(mz_values, intensity_values, expected_light_peak, expected_he
                          textcoords="offset points", xytext=(0, 5), ha='center')
 
 
-def scan_plot(mz_values, intensity_values, peptide_details):
+def scan_plot(mz_values, intensity_values, peptide_details, path):
     if peptide_details.empty:
         print("No peptide details found. Cannot create the plot.")
         return
@@ -65,16 +65,19 @@ def scan_plot(mz_values, intensity_values, peptide_details):
     sequence = peptide_details["Sequence"].values[0]
     retention_time = peptide_details["Retention_time"].values[0]
     charge = peptide_details["Charge"].values[0]
-    expected_heavy_peak = peptide_details["m/z"].values[0]
+    expected_peak = peptide_details["m/z"].values[0]
     labeling_state = peptide_details["labeling_state"].values[0]
     AA_mass = peptide_details["AA_mass"].values[0]
     scan_number = peptide_details["scan_number"].values[0]
     raw_file = peptide_details['Raw_file'].item()
     if labeling_state == 1:
-        expected_heavy_peak = expected_heavy_peak + (AA_mass / charge)
+        expected_heavy_peak = expected_peak + (AA_mass / charge)
 
-    expected_light_peak = expected_heavy_peak - (AA_mass / charge)
-
+        expected_light_peak = expected_heavy_peak - (AA_mass / charge)
+    else:
+        expected_light_peak = expected_peak
+        expected_heavy_peak = expected_peak + (AA_mass / charge)
+        
     plot_points_and_lines(mz_values, intensity_values, expected_light_peak, expected_heavy_peak)
     set_axes_limits(mz_values, intensity_values, expected_heavy_peak)
     # y_limit_half = (plt.ylim()[1] - plt.ylim()[0]) / 1.1
@@ -86,4 +89,6 @@ def scan_plot(mz_values, intensity_values, peptide_details):
     plt.title(f'MS1 of {sequence} Charge: {charge} \n Raw file: {raw_file} \n RT: {retention_time}, Scan no: {scan_number}')
     plt.grid(True)
     plt.legend()
+    
+    plt.savefig(f'{path}{sequence}.png', format='png', dpi=300)
     plt.show()
