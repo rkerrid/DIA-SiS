@@ -8,13 +8,14 @@ import os
 
 
 class Preprocessor:
-    def __init__(self, path, params, filter_cols, meta_data=None):
+    def __init__(self, path, params, filter_cols, requantify, meta_data=None):
         self.path = path
         self.meta_data = meta_data
         self.params = params
         self.chunk_size = 180000
         self.update = True
         self.filter_cols = filter_cols 
+        self.requantify = requantify
         
     def import_report(self):
         print('Beginning import report.tsv')
@@ -28,7 +29,7 @@ class Preprocessor:
         count = 1
         # Estimate rows in file size
         file_size_bytes = os.path.getsize(file_path)
-        average_row_size_bytes = 1000  # This is an example; you'll need to adjust this based on your data
+        average_row_size_bytes = 800  
         # Estimate the number of rows
         estimated_rows = file_size_bytes / average_row_size_bytes
         total_chunks = estimated_rows/self.chunk_size
@@ -47,10 +48,14 @@ class Preprocessor:
                 chunk = self._add_label_col(chunk)
                 chunk = self._remove_cols(chunk)
                 
-                # annotate df with SILAC chanel then apply filtering to H channel. Uncomment fitlerng to light channel if you do not want to use 'requantify'
                 chunk, chunk_filtered_out = self._filter_channel(chunk, "H")
-                # chunk, filtered_out_light = self.filter_channel(chunk, "L")
                 
+                # requantify settings set to False will filter light precursors and concat the filtered out precursors with chunck_filtered_out 
+                if not self.requantify:
+                    chunk, filtered_out_light = self._filter_channel(chunk, "L")
+                    chunk_filtered_out = pd.concat([chunk_filtered_out, filtered_out_light], ignore_index=True)
+                    print('not requantify')
+
                 # ID contaminants for report
                 contam_chunk = self._identify_contaminants(chunk)
                 

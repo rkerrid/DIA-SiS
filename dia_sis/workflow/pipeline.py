@@ -21,11 +21,12 @@ from dia_sis.workflow.generate_protein_groups import DiaSis
 
 
 class Pipeline:
-    def __init__(self, path, parameter_file, meta=None):
+    def __init__(self, path, requantify, parameter_file='default_params.json', meta=None):
         # Assign constructor variables
         self.path = path
         self.parameter_file = parameter_file
         self.meta = meta
+        self.requantify = requantify
         
         # Initialize class variables
         self.relable_with_meta = self._confirm_metadata()
@@ -82,7 +83,7 @@ class Pipeline:
         protein_groups_report.create_report(self.path, self.params)
         
     def execute_pipeline(self, generate_report=True):
-        self.preprocessor = Preprocessor(self.path, self.params, self.filter_cols, self.meta_data)
+        self.preprocessor = Preprocessor(self.path, self.params, self.filter_cols, self.requantify, self.meta_data)
         self.filtered_report, self.filtered_out_df, self.contaminants = self.preprocessor.import_report()
         
         precursor_rollup = DiaSis(self.path, self.filtered_report)
