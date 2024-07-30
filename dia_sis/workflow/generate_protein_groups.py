@@ -91,6 +91,7 @@ class DiaSis:
         df = df.copy(deep = True)
             
         # df = df.dropna(subset=['Precursor.Translated H','Ms1.Translated H'])
+        df = df.dropna(subset=['Ms1.Translated L/H'])
         runs = df['Run'].unique()
         runs_list = []
         for run in tqdm(runs, desc='Computing heavy intensities for each run'):
@@ -127,6 +128,7 @@ class DiaSis:
         
        
         # df = df.dropna(subset=['Precursor.Translated L/H','Ms1.Translated L/H'])
+        df = df.dropna(subset=['Ms1.Translated L/H'])
         
         for run in tqdm(runs, desc='Computing protein level ratios for each run'):
             run_df = df[df['Run'] == run]

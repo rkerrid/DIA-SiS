@@ -57,7 +57,8 @@ class Preprocessor:
                     print('not requantify')
 
                 # ID contaminants for report
-                contam_chunk = self._identify_contaminants(chunk)
+                # contam_chunk = self._identify_contaminants(chunk)
+                chunk, contam_chunk = self._remove_contaminants(chunk)
                 
                 #remove filter cols before concatinating all dfs and returning filtered df for reports and protein roll up
                 chunk.drop(self.filter_cols, axis=1, inplace=True)
@@ -136,15 +137,24 @@ class Preprocessor:
     def _identify_contaminants(self, chunk):
          chunk_copy = chunk.copy(deep=True)
          contams_mask = chunk_copy['Protein.Group'].str.contains('Cont_', case=False, na=False)
-         self._validate_boolean_mask(contams_mask)
+         # self._validate_boolean_mask(contams_mask)
               
          contaminants = chunk_copy[contams_mask]
          return contaminants
+     
+    def _remove_contaminants(self, chunk):
+         # chunk_copy = chunk.copy(deep=True)
+         contams_mask = chunk['Protein.Group'].str.contains('Cont_', case=False, na=False)
+         # self._validate_boolean_mask(contams_mask)
+              
+         contaminants = chunk[contams_mask]
+         chunk = chunk[~contams_mask]
+         return chunk, contaminants
     
-    def _validate_boolean_mask(self, mask):
-        if not all(isinstance(x, bool) for x in mask):
-            invalid_values = mask[~mask.isin([True, False])]
-            print(f"Non-boolean values in mask: {invalid_values}")
+    # def _validate_boolean_mask(self, mask):
+    #     if not all(isinstance(x, bool) for x in mask):
+    #         invalid_values = mask[~mask.isin([True, False])]
+    #         print(f"Non-boolean values in mask: {invalid_values}")
             
             
    
