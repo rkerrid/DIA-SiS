@@ -27,10 +27,11 @@ class DiaSis:
         self.href_df = self.calculate_precursor_href_intensities_sum(self.formatted_precursors)
         
         # Compute protein level ratios
-        self.protein_groups = self.compute_protein_level(self.formatted_precursors)
+        self.protein_ratios = self.compute_protein_level(self.formatted_precursors)
+        self.protein_ratios.to_csv(f'{self.path}/preprocessing/ratios.csv', sep=',')
         
         # Merge href df with protein level ratios to normalize light intensities
-        self.protein_groups = self.href_normalization(self.protein_groups, self.href_df) 
+        self.protein_groups = self.href_normalization(self.protein_ratios, self.href_df) 
         
         # Output protein groups table of Light intensities and corrosponding href df
         self.output_protein_groups(self.protein_groups, self.path)
