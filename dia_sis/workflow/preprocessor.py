@@ -49,7 +49,7 @@ class Preprocessor:
                 
                 # annotate df with SILAC chanel then apply filtering to H channel. Uncomment fitlerng to light channel if you do not want to use 'requantify'
                 chunk, chunk_filtered_out = self._filter_channel(chunk, "H")
-                # chunk, filtered_out_light = self.filter_channel(chunk, "L")
+                chunk, filtered_out_light = self._filter_channel(chunk, "L")
                 
                 # ID contaminants for report
                 contam_chunk = self._identify_contaminants(chunk)
