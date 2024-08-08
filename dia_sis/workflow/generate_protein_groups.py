@@ -69,22 +69,6 @@ class DiaSis:
       
         return df
 
-    # def calculate_precursor_href_intensities(self, df): # Older method where median H channel precursors were used to generate H reference
-    #     print('Calculate href df')
-    #     df = df.copy(deep = True)
-    #     df = df.dropna(subset=['Precursor.Translated H','Ms1.Translated H'])
-        
-    #     def combined_median(ms1_series, precursor_series):
-    #         combined_series = np.concatenate([ms1_series, precursor_series])
-    #         combined_series = np.log10(combined_series)  # Log-transform the combined series
-    #         return np.median(combined_series)  # Return the median of the log-transformed values
-       
-    #     # Group by protein group and apply the custom aggregation
-    #     grouped = df.groupby(['Protein.Group']).apply(lambda x: pd.Series({
-    #         'href': combined_median(x['Ms1.Translated H'], x['Precursor.Translated H']) 
-    #     })).reset_index()
-       
-    #     return grouped[['Protein.Group', 'href']]
     
     def calculate_precursor_href_intensities_sum(self, df): 
         print('Calculate href df')
@@ -92,18 +76,26 @@ class DiaSis:
         df = df.copy(deep = True)
             
         # df = df.dropna(subset=['Precursor.Translated H','Ms1.Translated H'])
-        df = df.dropna(subset=['Ms1.Translated L/H'])
+        # df = df.dropna(subset=['Ms1.Translated L/H'])
         runs = df['Run'].unique()
         runs_list = []
         for run in tqdm(runs, desc='Computing heavy intensities for each run'):
             run_df = df[df['Run'] == run]
     
             def combined_sum(ms1_series, precursor_series):
-                total_intensity = ms1_series + precursor_series
+                both_series = pd.concat([ms1_series, precursor_series])
                 
-                total_intensity = total_intensity.dropna()
                 
-                total_intensity = np.sum(total_intensity)
+                # both_series = ms1_series.add(precursor_series, fill_value=0)  # check data structure
+                # both_series = both_series.replace({None: pd.NA})
+                # both_series = both_series.replace(0, pd.NA)
+                both_series = both_series.dropna()
+                
+                if len(both_series)<1:
+                    print("no data")
+                    return np.NAN
+                
+                total_intensity = np.sum(both_series)
                 return np.log10(total_intensity)  # Return the median of the log-transformed values
            
             # Group by protein group and apply the custom aggregation
@@ -129,15 +121,27 @@ class DiaSis:
         
        
         # df = df.dropna(subset=['Precursor.Translated L/H','Ms1.Translated L/H'])
-        df = df.dropna(subset=['Ms1.Translated L/H'])
+        # df = df.dropna(subset=['Ms1.Translated L/H'])
         
         for run in tqdm(runs, desc='Computing protein level ratios for each run'):
             run_df = df[df['Run'] == run]
     
             def combined_median_ratios(ms1_series, precursor_series):
-                combined_series = np.concatenate([ms1_series, precursor_series])
-                combined_series = combined_series[~np.isnan(combined_series)]
-                combined_series = np.log10(combined_series)  # Log-transform the combined series
+                both_series = pd.concat([ms1_series, precursor_series])
+                
+                # both_series = ms1_series.add(precursor_series, fill_value=0)  # check data structure
+                # both_series = both_series.replace({None: pd.NA})
+                # both_series = both_series.replace(0, pd.NA)
+                both_series = both_series.dropna()
+                
+                if len(both_series)<1:
+                    print("no data")
+                    return np.NAN
+                
+                # combined_series = np.concatenate([ms1_series, precursor_series])
+                # combined_series = combined_series[~np.isnan(combined_series)]
+                
+                combined_series = np.log10(both_series)  # Log-transform the combined series
                 return np.median(combined_series)  # Return the median of the log-transformed values
     
             # Group by protein group and apply the custom aggregation
@@ -156,6 +160,7 @@ class DiaSis:
     def href_normalization(self, protein_groups, href):
         print('Calculating adjusted intensities using reference')
         # Merge the href_df onto protein groups containing protein level ratios
+        protein_groups = protein_groups.dropna()
         merged_df = protein_groups.merge(href, on='Protein.Group', how='inner')
         
         # Obtain normalized light intensities by adding the L/H ratio to the heavy refference in log space
